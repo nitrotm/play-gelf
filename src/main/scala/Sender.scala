@@ -169,7 +169,7 @@ class GELFSenderFactory(builder: => GELFSender)(implicit ec: ExecutionContext) {
             case Some(currentSender) =>
               currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.warn(e.toString, e) })
             case None =>
-              Future.successful()
+              Future.successful(Unit)
           }
         } yield newSender
       )
@@ -190,7 +190,7 @@ class GELFSenderFactory(builder: => GELFSender)(implicit ec: ExecutionContext) {
           case Some(currentSender) =>
             currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.warn(e.toString, e) })
           case None =>
-            Future.successful()
+            Future.successful(Unit)
         }
       } yield Unit)
     } finally {

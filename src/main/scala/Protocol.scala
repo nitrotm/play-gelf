@@ -9,8 +9,6 @@ object GELFVersion extends Enumeration {
 }
 
 object GELFProtocol {
-  import scala.reflect.runtime.universe._
-
   private def enumFormat[T <: Enumeration](e: T) = new Format[T#Value] {
     def reads(json: JsValue) = e.values.find( _.toString == json.as[String] ) match {
       case Some(value) =>
