@@ -1,22 +1,18 @@
 lazy val `play-gelf` = (project in file("."))
 
-val PlayVersion = "2.6.13"
-val NettyVersion = "4.1.42.Final"
-val Slf4jVersion = "1.7.28"
-val LogbackVersion = "1.2.3"
-
 organization := "org.tmsrv"
-name := """org.tmsrv.play.gelf"""
+name := "play-gelf"
 
 homepage := Some(url("https://github.com/nitrotm/play-gelf"))
 licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-releaseTagName := (version in ThisBuild).value
+scmInfo := Some(ScmInfo(url("https://github.com/nitrotm/play-gelf"), "scm:git@github.com:nitrotm/play-gelf.git"))
+developers := List(Developer(id="nitrotm", name="Antony Ducommun", email="nitro@tmsrv.org", url=url("https://www.tmsrv.org")))
 
-bintrayOrganization := None
-bintrayRepository := "maven"
-bintrayPackage := "play-gelf"
-bintrayReleaseOnPublish := false
+val playVersion = "2.6.13"
+val nettyVersion = "4.1.42.Final"
+val slf4jVersion = "1.7.28"
+val logbackVersion = "1.2.3"
 
 scalacOptions ++= Seq(
   "-deprecation",
@@ -34,12 +30,19 @@ javacOptions ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.play" %% "play-json" % PlayVersion,
-  "io.netty" % "netty-all" % NettyVersion,
-  "org.slf4j" % "slf4j-api" % Slf4jVersion,
-  "ch.qos.logback" % "logback-core" % LogbackVersion,
-  "ch.qos.logback" % "logback-classic" % LogbackVersion,
+  "com.typesafe.play" %% "play-json" % playVersion,
+  "io.netty" % "netty-all" % nettyVersion,
+  "org.slf4j" % "slf4j-api" % slf4jVersion,
+  "ch.qos.logback" % "logback-core" % logbackVersion,
+  "ch.qos.logback" % "logback-classic" % logbackVersion,
 )
+
+releaseTagName := (version in ThisBuild).value
+
+bintrayOrganization := None
+bintrayRepository := "maven"
+bintrayPackage := "play-gelf"
+bintrayReleaseOnPublish := false
 
 // scalariformAutoformat := true,
 // ScalariformKeys.preferences := ScalariformKeys.preferences.value
