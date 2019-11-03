@@ -9,6 +9,8 @@ licenses := Seq("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0"
 scmInfo := Some(ScmInfo(url("https://github.com/nitrotm/play-gelf"), "scm:git@github.com:nitrotm/play-gelf.git"))
 developers := List(Developer(id="nitrotm", name="Antony Ducommun", email="nitro@tmsrv.org", url=url("https://www.tmsrv.org")))
 
+crossScalaVersions := Seq("2.12.10")
+
 val playVersion = "2.6.13"
 val nettyVersion = "4.1.42.Final"
 val slf4jVersion = "1.7.28"

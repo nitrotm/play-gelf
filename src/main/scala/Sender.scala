@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
 
-abstract class GELFSender {
+trait GELFSender {
   def isActive: Future[Boolean]
 
   def shutdown(): Future[Unit]
@@ -54,17 +54,6 @@ abstract class GELFSender {
     System.currentTimeMillis,
     shortMessage,
     None,
-    Some(fields),
-    None,
-    None,
-    None,
-    None
-  )
-
-  def send(shortMessage: String, fullMessage: String, fields: JsObject): Future[Unit] = send(
-    System.currentTimeMillis,
-    shortMessage,
-    Some(fullMessage),
     Some(fields),
     None,
     None,

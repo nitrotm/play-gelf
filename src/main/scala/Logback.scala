@@ -17,17 +17,19 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   private var serverHostname: String = "localhost"
   private var serverPort: Int = 12201
-  private var clientName: String = InetAddress.getLocalHost().getHostName()
   private var connectTimeout: Int = 1000
+  private var clientName: String = InetAddress.getLocalHost().getHostName()
   private var version: GELFVersion.Value = GELFVersion.V1_1
   private var delimiter: Byte = 0
+
+  private var retry: Int = 5
+  private var retryDelay: Int = 1000
+
   private var useSsl: Boolean = false
   private var keystore: String = ""
   private var keystorePassword: String = ""
   private var keyAlias: String = ""
   private var keyAliasPassword: String = ""
-  private var retry: Int = 5
-  private var retryDelay: Int = 1000
 
   private lazy val sender = new GELFSenderWithRetry(
     new GELFSenderFactory(
@@ -44,8 +46,8 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
           },
           serverHostname,
           serverPort,
-          clientName,
           connectTimeout,
+          clientName,
           version,
           delimiter
         )
@@ -53,8 +55,8 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
         new GELFSenderTCP(
           serverHostname,
           serverPort,
-          clientName,
           connectTimeout,
+          clientName,
           version,
           delimiter
         )
@@ -155,15 +157,27 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
     afterConfigurationUpdate()
   }
 
+  def getConnectTimeout(): Int = connectTimeout
+  def setConnectTimeout(value: Int) {
+    connectTimeout = value
+    afterConfigurationUpdate()
+  }
+
   def getClientName(): String = clientName
   def setClientName(value: String) {
     clientName = value.trim
     afterConfigurationUpdate()
   }
 
-  def getConnectTimeout(): Int = connectTimeout
-  def setConnectTimeout(value: Int) {
-    connectTimeout = value
+  def getRetry(): Int = retry
+  def setRetry(value: Int) {
+    retry = value
+    afterConfigurationUpdate()
+  }
+
+  def getRetryDelay(): Int = retryDelay
+  def setRetryDelay(value: Int) {
+    retryDelay = value
     afterConfigurationUpdate()
   }
 
@@ -194,18 +208,6 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
   def getKeystoreAliasPassword(): String = keyAliasPassword
   def setKeystoreAliasPassword(value: String) {
     keyAliasPassword = value
-    afterConfigurationUpdate()
-  }
-
-  def getRetry(): Int = retry
-  def setRetry(value: Int) {
-    retry = value
-    afterConfigurationUpdate()
-  }
-
-  def getRetryDelay(): Int = retryDelay
-  def setRetryDelay(value: Int) {
-    retryDelay = value
     afterConfigurationUpdate()
   }
 }

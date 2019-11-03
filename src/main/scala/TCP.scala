@@ -1,5 +1,7 @@
 package org.tmsrv.play.gelf
 
+import java.net.InetAddress
+
 import scala.concurrent.{ ExecutionContext, Future }
 
 import io.netty.bootstrap.Bootstrap
@@ -12,8 +14,17 @@ import io.netty.handler.ssl.SslContext
 import play.api.libs.json._
 
 
-class GELFSenderTCP(serverHostname: String = "localhost", serverPort: Int = 12201, clientName: String = "localhost", connectTimeout: Int = 1000, version: GELFVersion.Value = GELFVersion.V1_1, delimiter: Byte = 0)(implicit ec: ExecutionContext) extends GELFSender {
+object GELFSenderTCP {
+  import NettyHelpers._
+
   private lazy val workerGroup = new NioEventLoopGroup()
+
+  def shutdownWorkers(implicit ec: ExecutionContext): Future[Unit] = for (_ <- workerGroup.shutdownGracefully().asScala) yield Unit
+}
+
+class GELFSenderTCP(serverHostname: String = "localhost", serverPort: Int = 12201, connectTimeout: Int = 1000, clientName: String = InetAddress.getLocalHost().getHostName(), version: GELFVersion.Value = GELFVersion.V1_1, delimiter: Byte = 0)(implicit ec: ExecutionContext) extends GELFSender {
+  import GELFSenderTCP.workerGroup
+  import NettyHelpers._
 
   private lazy val bootstrap = new Bootstrap()
     .group(workerGroup)
@@ -30,18 +41,13 @@ class GELFSenderTCP(serverHostname: String = "localhost", serverPort: Int = 1220
   private lazy val channel = channelFuture.channel
 
 
-  import NettyHelpers._
-
   def isActive: Future[Boolean] = for {
     _ <- channelFuture.asScala
   } yield channel.isActive
 
   def shutdown(): Future[Unit] = {
     channel.close()
-    for {
-      _ <- channel.closeFuture.asScala
-      _ <- workerGroup.shutdownGracefully().asScala
-    } yield Unit
+    for (_ <- channel.closeFuture.asScala) yield Unit
   }
 
   def send(timestamp: Long, shortMessage: String, fullMessage: Option[String], fields: Option[JsObject], level: Option[Int], facility: Option[Int], file: Option[String], line: Option[Int]): Future[Unit] = for {
@@ -59,7 +65,7 @@ class GELFSenderTCP(serverHostname: String = "localhost", serverPort: Int = 1220
   }
 }
 
-class GELFSenderSSLOverTCP(sslContext: SslContext, serverHostname: String = "localhost", serverPort: Int = 12201, clientName: String = "localhost", connectTimeout: Int = 1000, version: GELFVersion.Value = GELFVersion.V1_1, delimiter: Byte = 0)(implicit ec: ExecutionContext) extends GELFSenderTCP(serverHostname, serverPort, clientName, connectTimeout, version, delimiter) {
+class GELFSenderSSLOverTCP(sslContext: SslContext, serverHostname: String = "localhost", serverPort: Int = 12201, connectTimeout: Int = 1000, clientName: String = InetAddress.getLocalHost().getHostName(), version: GELFVersion.Value = GELFVersion.V1_1, delimiter: Byte = 0)(implicit ec: ExecutionContext) extends GELFSenderTCP(serverHostname, serverPort, connectTimeout, clientName, version, delimiter) {
   protected override def buildInitializer(): ChannelInitializer[SocketChannel] = new ChannelInitializer[SocketChannel] {
     def initChannel(ch: SocketChannel) {
       ch.pipeline()
