@@ -1,4 +1,4 @@
-package ch.aducommun.gelf
+package org.tmsrv.play.gelf
 
 import play.api.libs.json._
 
@@ -7,7 +7,6 @@ object GELFVersion extends Enumeration {
   val V1_0 = Value("1.0")
   val V1_1 = Value("1.1")
 }
-
 
 object GELFProtocol {
   import scala.reflect.runtime.universe._

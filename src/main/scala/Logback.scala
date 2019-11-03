@@ -1,6 +1,7 @@
-package ch.aducommun.gelf
+package org.tmsrv.play.gelf
 
 import java.net.InetAddress
+
 import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
@@ -16,12 +17,10 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   private var serverHostname: String = "localhost"
   private var serverPort: Int = 12201
-  private var clientName: String = {
-    InetAddress.getLocalHost().getHostName()
-  }
+  private var clientName: String = InetAddress.getLocalHost().getHostName()
   private var connectTimeout: Int = 1000
   private var version: GELFVersion.Value = GELFVersion.V1_1
-  private var delimiter: Byte = '\0'
+  private var delimiter: Byte = 0
   private var useSsl: Boolean = false
   private var keystore: String = ""
   private var keystorePassword: String = ""
@@ -30,15 +29,21 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
   private var retry: Int = 5
   private var retryDelay: Int = 1000
 
-  private var sender = new GELFSenderWithRetry(
-    new SenderFactory(
+  private lazy val sender = new GELFSenderWithRetry(
+    new GELFSenderFactory(
       if (useSsl) {
         new GELFSenderSSLOverTCP(
+          if (keystore.nonEmpty && keyAlias.nonEmpty) {
+            GELFCryptography.sslContext(
+              GELFCryptography.loadKeyStore(new java.io.FileInputStream(keystore), keystorePassword),
+              keyAlias,
+              keyAliasPassword
+            )
+          } else {
+            GELFCryptography.sslContext()
+          },
           serverHostname,
           serverPort,
-          GELFCryptography.loadKeyStore(new java.io.FileInputStream(keystore), keystorePassword),
-          keyAlias,
-          keyAliasPassword,
           clientName,
           connectTimeout,
           version,
@@ -72,6 +77,10 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
   private val EMPTY = Json.obj()
 
   override protected def append(event: ILoggingEvent) {
+    if (event.getLoggerName().startsWith("org.tmsrv.play.gelf")) {
+      return;
+    }
+
     val caller = if (event.hasCallerData()) {
       Option(event.getCallerData()).map( _.toSeq ) match {
         case Some(data) if data.nonEmpty =>
@@ -136,7 +145,7 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   def getHost(): String = serverHostname
   def setHost(value: String) {
-    serverHostname = value
+    serverHostname = value.trim
     afterConfigurationUpdate()
   }
 
@@ -148,7 +157,7 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   def getClientName(): String = clientName
   def setClientName(value: String) {
-    clientName = value
+    clientName = value.trim
     afterConfigurationUpdate()
   }
 
@@ -166,7 +175,7 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   def getKeystore(): String = keystore
   def setKeystore(value: String) {
-    keystore = value
+    keystore = value.trim
     afterConfigurationUpdate()
   }
 
@@ -178,7 +187,7 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   def getKeystoreAlias(): String = keyAlias
   def setKeystoreAlias(value: String) {
-    keyAlias = value
+    keyAlias = value.trim
     afterConfigurationUpdate()
   }
 
