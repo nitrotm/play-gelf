@@ -1,4 +1,5 @@
 import interplay.ScalaVersions
+// import com.typesafe.sbt.SbtScalariform._
 
 name := """org.tmsrv.play.gelf"""
 version := "1.0.0-SNAPSHOT"
