@@ -44,7 +44,7 @@ releaseTagName := (version in ThisBuild).value
 bintrayOrganization := None
 bintrayRepository := "maven"
 bintrayPackage := "play-gelf"
-bintrayReleaseOnPublish := false
+bintrayReleaseOnPublish := true
 
 // scalariformAutoformat := true,
 // ScalariformKeys.preferences := ScalariformKeys.preferences.value
