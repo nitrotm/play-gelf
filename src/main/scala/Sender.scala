@@ -97,10 +97,9 @@ class GELFSenderWithRetry(factory: GELFSenderFactory, retry: Int = 2, delay: Lon
 
     def retryNext(result: Future[Unit], trial: Int = 0): Future[Unit] = result.recoverWith({
       case e: Exception =>
-        logger.warn(e.toString, e)
-
         if (trial >= retry) {
-          throw new IllegalStateException("Sender failed " + trial + " times, dropping message (" + shortMessage + ")")
+          logger.warn(e.toString, e)
+          throw new IllegalStateException("Sender failed " + trial + " times, dropping message (" + shortMessage + ")", e)
         }
 
         val promise = Promise[Future[Unit]]()
@@ -156,7 +155,7 @@ class GELFSenderFactory(builder: => GELFSender)(implicit ec: ExecutionContext) {
           newSender <- create()
           _ <- currentSender match {
             case Some(currentSender) =>
-              currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.warn(e.toString, e) })
+              currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.debug(e.toString, e) })
             case None =>
               Future.successful(Unit)
           }
@@ -177,7 +176,7 @@ class GELFSenderFactory(builder: => GELFSender)(implicit ec: ExecutionContext) {
       (for {
         _ <- currentSender match {
           case Some(currentSender) =>
-            currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.warn(e.toString, e) })
+            currentSender.flatMap( _.shutdown ).recover({ case e: Exception => logger.debug(e.toString, e) })
           case None =>
             Future.successful(Unit)
         }
