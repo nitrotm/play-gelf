@@ -100,9 +100,13 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
     }
     val error = Option(event.getThrowableProxy()) match {
       case Some(t) =>
-        Json.obj(
-          "logback_error" -> throwableChainMessage(t),
-          "logback_trace" -> throwableChain(t).map(t => throwableStackTrace(t))
+        new JsObject(
+          Map(
+            "logback_error" -> Json.toJson(throwableChainMessage(t))
+          ) ++ throwableChain(t)
+            .zipWithIndex
+            .map({ case (t, i) => ("logback_trace" + i) -> Json.toJson(throwableStackTrace(t).mkString("\n")) })
+            .toMap
         )
       case None =>
         EMPTY
@@ -128,7 +132,7 @@ class GELFLogbackAppender extends AppenderBase[ILoggingEvent] {
 
   private def throwableChain(t: IThrowableProxy): List[IThrowableProxy] = t.getCause match {
     case null =>
-      Nil
+      t +: Nil
     case cause =>
       t +: throwableChain(cause)
   }
