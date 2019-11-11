@@ -44,11 +44,22 @@ object GELFProtocol {
       fields.getOrElse(Json.obj())
         .value
         .filter({ case (key, value) => key != "id" })
-        .map({
-          case (key, JsNull) => ("_" + key) -> NULL
-          case (key, JsFalse) => ("_" + key) -> FALSE
-          case (key, JsTrue) => ("_" + key) -> TRUE
-          case (key, value) => ("_" + key) -> value
-        })
+        .flatMap({ case (key, value) => flattenJson(key, value) })
+        .map({ case (key, value) => ("_" + key) -> value })
   )
+
+  private def flattenJson(key: String, value: JsValue): Seq[(String, JsValue)] = value match {
+    case JsNull =>
+      Seq(key -> NULL)
+    case value: JsBoolean =>
+      Seq(key -> (if (value.value) TRUE else FALSE))
+    case value: JsNumber =>
+      Seq(key -> value)
+    case value: JsString =>
+      Seq(key -> value)
+    case value: JsArray =>
+      value.value.zipWithIndex.flatMap({ case (child, i) => flattenJson(key + "_" + i, child) })
+    case value: JsObject =>
+      value.value.toSeq.flatMap({ case (childKey, child) => flattenJson(key + "_" + childKey, child) })
+  }
 }
